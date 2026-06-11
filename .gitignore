@@ -1,0 +1,54 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/
+
+# .NET / MSBuild
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+project.lock.json
+artifacts/
+*.binlog
+
+# Visual Studio
+.vs/
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# User secrets & local settings
+appsettings.*.local.json
+*.pubxml
+*.pubxml.user
+*.publishsettings
+
+# Test results & coverage
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# Environment files
+.env
+.env.*
+
+# OS files
+Thumbs.db
+.DS_Store
