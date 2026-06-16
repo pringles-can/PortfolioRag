@@ -9,12 +9,13 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.19" />
+        <PackageReference Include="OpenAI" Version="2.11.0" />
+        <PackageReference Include="OpenAI-DotNet" Version="8.8.8" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="src\Features\IngestDocument\" />
-      <Folder Include="src\Infrastructure\OpenAI\" />
       <Folder Include="src\Infrastructure\VectorStore\" />
     </ItemGroup>
 
