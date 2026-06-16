@@ -1,6 +1,6 @@
 ﻿namespace PortfolioRag.Api.Infrastructure;
 
-public interface IAiAnswerService
+public interface IPortfolioAssistant
 {
     Task<string> AnswerAsync(
         string question,

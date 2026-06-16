@@ -15,7 +15,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="src\Features\ChunkDocument\" />
+      <Folder Include="src\Features\GenerateEmbedding\" />
       <Folder Include="src\Features\IngestDocument\" />
+      <Folder Include="src\Features\SearchKnowledge\" />
       <Folder Include="src\Infrastructure\VectorStore\" />
     </ItemGroup>
 

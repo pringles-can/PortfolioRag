@@ -5,7 +5,7 @@ namespace PortfolioRag.Api.Infrastructure.OpenAI;
 using Microsoft.Extensions.Options;
 
 
-public sealed class PortfolioAssistant : IAiAnswerService
+public sealed class PortfolioAssistant : IPortfolioAssistant
 {
     private readonly ChatClient _chatClient;
 

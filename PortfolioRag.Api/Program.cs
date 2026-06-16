@@ -10,7 +10,7 @@ builder.Services.Configure<OpenAiOptions>(
 builder.Services.AddScoped<AskQuestionHandler>();
 
 builder.Services.AddSingleton<
-    IAiAnswerService,
+    IPortfolioAssistant,
     PortfolioAssistant>();
 
 var app = builder.Build();
