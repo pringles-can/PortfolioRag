@@ -1,0 +1,24 @@
+# Build output
+**/bin/
+**/obj/
+**/out/
+
+# IDE / editor
+.idea/
+.vs/
+.vscode/
+**/*.user
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Local env / secrets
+.env
+.env.*
+**/appsettings.*.local.json

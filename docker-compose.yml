@@ -1,0 +1,36 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: portfoliorag-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-portfoliorag}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-portfoliorag}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-portfoliorag} -d ${POSTGRES_DB:-portfoliorag}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfoliorag-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # Wired up for when Npgsql/pgvector is added to the app
+      ConnectionStrings__Postgres: "Host=db;Port=5432;Database=${POSTGRES_DB:-portfoliorag};Username=${POSTGRES_USER:-portfoliorag};Password=${POSTGRES_PASSWORD:-postgres}"
+      OpenAI__ApiKey: ${OPENAI_API_KEY:-}
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
