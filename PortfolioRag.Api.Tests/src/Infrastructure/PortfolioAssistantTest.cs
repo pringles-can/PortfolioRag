@@ -208,7 +208,7 @@ public sealed class AskQuestionHandlerTests
 
         public string? ContextReceived { get; private set; }
 
-        public Task<string> AnswerQuestionAsync(
+        public Task<string> AnswerAsync(
             string question,
             string context,
             CancellationToken cancellationToken)
@@ -217,11 +217,6 @@ public sealed class AskQuestionHandlerTests
             ContextReceived = context;
 
             return Task.FromResult(_answer);
-        }
-
-        public Task<string> AnswerAsync(string question, string context, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
         }
     }
 
