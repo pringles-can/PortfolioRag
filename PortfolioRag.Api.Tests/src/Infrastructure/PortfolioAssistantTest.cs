@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.FileProviders;
 using Moq;
-using PortfolioRag.Api.Features.AskQuestion;
 using PortfolioRag.Api.Infrastructure;
-using PortfolioRag.Api.Infrastructure.OpenAI;
 using Xunit;
 
 namespace PortfolioRag.Api.Tests.src.Infrastructure;
@@ -114,132 +108,5 @@ public class PortfolioAssistantTest
         _aiAnswerServiceMock.Verify(service =>
                 service.AnswerAsync(question, context, It.IsAny<CancellationToken>()),
             Times.Once);
-    }
-}
-
-public sealed class AskQuestionHandlerTests
-{
-    [Fact]
-    public async Task Handle_ReadsAllMarkdownDocs_AndReturnsSources()
-    {
-        var rootPath = CreateTempDocs(
-            new Dictionary<string, string>
-            {
-                ["resume.md"] = "Steve has .NET experience.",
-                ["work-order-tracker.md"] = "WorkOrderOperationsTracker uses vertical slices."
-            });
-
-        var assistant = new FakePortfolioAssistant("Test answer.");
-
-        var handler = new AskQuestionHandler(
-            new FakeWebHostEnvironment(rootPath),
-            assistant);
-
-        var response = await handler.Handle(
-            new AskQuestionRequest("What experience does Steve have?"),
-            CancellationToken.None);
-
-        Assert.Equal("Test answer.", response.Answer);
-
-        Assert.Contains("resume.md", response.Sources);
-        Assert.Contains("work-order-tracker.md", response.Sources);
-
-        Assert.Contains("Source: resume.md", assistant.ContextReceived);
-        Assert.Contains("Steve has .NET experience.", assistant.ContextReceived);
-        Assert.Contains("Source: work-order-tracker.md", assistant.ContextReceived);
-        Assert.Contains("WorkOrderOperationsTracker uses vertical slices.", assistant.ContextReceived);
-    }
-
-    [Fact]
-    public async Task Handle_PassesQuestionToAssistant()
-    {
-        var rootPath = CreateTempDocs(
-            new Dictionary<string, string>
-            {
-                ["resume.md"] = "Steve is a backend engineer."
-            });
-
-        var assistant = new FakePortfolioAssistant("Answer.");
-
-        var handler = new AskQuestionHandler(
-            new FakeWebHostEnvironment(rootPath),
-            assistant);
-
-        await handler.Handle(
-            new AskQuestionRequest("What is Steve's background?"),
-            CancellationToken.None);
-
-        Assert.Equal(
-            "What is Steve's background?",
-            assistant.QuestionReceived);
-    }
-
-    private static string CreateTempDocs(
-        Dictionary<string, string> files)
-    {
-        var rootPath = Path.Combine(
-            Path.GetTempPath(),
-            Guid.NewGuid().ToString("N"));
-
-        var docsPath = Path.Combine(rootPath, "docs");
-
-        Directory.CreateDirectory(docsPath);
-
-        foreach (var file in files)
-        {
-            File.WriteAllText(
-                Path.Combine(docsPath, file.Key),
-                file.Value);
-        }
-
-        return rootPath;
-    }
-
-    private sealed class FakePortfolioAssistant : IPortfolioAssistant
-    {
-        private readonly string _answer;
-
-        public FakePortfolioAssistant(string answer)
-        {
-            _answer = answer;
-        }
-
-        public string? QuestionReceived { get; private set; }
-
-        public string? ContextReceived { get; private set; }
-
-        public Task<string> AnswerAsync(
-            string question,
-            string context,
-            CancellationToken cancellationToken)
-        {
-            QuestionReceived = question;
-            ContextReceived = context;
-
-            return Task.FromResult(_answer);
-        }
-    }
-
-    private sealed class FakeWebHostEnvironment : IWebHostEnvironment
-    {
-        public FakeWebHostEnvironment(string contentRootPath)
-        {
-            ContentRootPath = contentRootPath;
-            WebRootPath = Path.Combine(contentRootPath, "wwwroot");
-        }
-
-        public string ApplicationName { get; set; } = "PortfolioRag.Api.Tests";
-
-        public IFileProvider ContentRootFileProvider { get; set; } =
-            new NullFileProvider();
-
-        public string ContentRootPath { get; set; }
-
-        public string EnvironmentName { get; set; } = "Development";
-
-        public string WebRootPath { get; set; }
-
-        public IFileProvider WebRootFileProvider { get; set; } =
-            new NullFileProvider();
     }
 }

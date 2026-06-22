@@ -3,6 +3,7 @@ using PortfolioRag.Api.Features.AskQuestion;
 using PortfolioRag.Api.Features.ChunkDocument;
 using PortfolioRag.Api.Features.GenerateEmbedding;
 using PortfolioRag.Api.Features.IngestDocument;
+using PortfolioRag.Api.Features.SearchKnowledge;
 using PortfolioRag.Api.Infrastructure;
 using PortfolioRag.Api.Infrastructure.OpenAI;
 using PortfolioRag.Api.Infrastructure.VectorStore;
@@ -19,6 +20,10 @@ builder.Services.AddDbContext<PortfolioRagDbContext>(options =>
 
 builder.Services.AddScoped<AskQuestionHandler>();
 builder.Services.AddScoped<IngestDocumentHandler>();
+
+builder.Services.AddScoped<
+    ISearchKnowledgeService,
+    SearchKnowledgeService>();
 
 builder.Services.AddSingleton<
     IPortfolioAssistant,

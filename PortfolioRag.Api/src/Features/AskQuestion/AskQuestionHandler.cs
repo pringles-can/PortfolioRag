@@ -1,18 +1,20 @@
-﻿using PortfolioRag.Api.Infrastructure;
-using PortfolioRag.Api.Infrastructure.OpenAI;
+using PortfolioRag.Api.Features.SearchKnowledge;
+using PortfolioRag.Api.Infrastructure;
 
 namespace PortfolioRag.Api.Features.AskQuestion;
 
 public sealed class AskQuestionHandler
 {
-    private readonly IWebHostEnvironment _environment;
+    private const int TopK = 5;
+
+    private readonly ISearchKnowledgeService _searchKnowledgeService;
     private readonly IPortfolioAssistant _portfolioAssistant;
 
     public AskQuestionHandler(
-        IWebHostEnvironment environment,
+        ISearchKnowledgeService searchKnowledgeService,
         IPortfolioAssistant portfolioAssistant)
     {
-        _environment = environment;
+        _searchKnowledgeService = searchKnowledgeService;
         _portfolioAssistant = portfolioAssistant;
     }
 
@@ -20,35 +22,18 @@ public sealed class AskQuestionHandler
         AskQuestionRequest request,
         CancellationToken cancellationToken)
     {
-        var docsPath = Path.Combine(
-            _environment.ContentRootPath,
-            "docs");
-
-        var markdownFiles = Directory
-            .GetFiles(docsPath, "*.md")
-            .OrderBy(x => x)
-            .ToList();
-
-        var documentSections = new List<string>();
-
-        foreach (var file in markdownFiles)
-        {
-            var fileName = Path.GetFileName(file);
-
-            var text = await File.ReadAllTextAsync(
-                file,
-                cancellationToken);
-
-            documentSections.Add($"""
-                                  Source: {fileName}
-
-                                  {text}
-                                  """);
-        }
+        var matches = await _searchKnowledgeService.SearchAsync(
+            request.Question,
+            TopK,
+            cancellationToken);
 
         var context = string.Join(
             $"{Environment.NewLine}{Environment.NewLine}---{Environment.NewLine}{Environment.NewLine}",
-            documentSections);
+            matches.Select(match => $"""
+                                     Source: {match.Source}
+
+                                     {match.Content}
+                                     """));
 
         var answer = await _portfolioAssistant.AnswerAsync(
             request.Question,
@@ -56,11 +41,10 @@ public sealed class AskQuestionHandler
             cancellationToken);
 
         return new AskQuestionResponse(
-            Answer: answer,
-            Sources: markdownFiles
-                .Select(Path.GetFileName)
-                .Where(x => x is not null)
-                .Cast<string>()
-                .ToList());
+            Sources: matches
+                .Select(match => match.Source)
+                .Distinct()
+                .ToList(),
+            Answer: answer);
     }
 }
