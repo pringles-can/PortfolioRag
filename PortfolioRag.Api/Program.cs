@@ -13,10 +13,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<OpenAiOptions>(
     builder.Configuration.GetSection("OpenAI"));
 
+builder.Services.Configure<IngestionOptions>(
+    builder.Configuration.GetSection("Ingestion"));
+
 builder.Services.AddDbContext<PortfolioRagDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("Postgres"),
         npgsql => npgsql.UseVector()));
+
+builder.Services.AddHealthChecks();
 
 builder.Services.AddScoped<AskQuestionHandler>();
 builder.Services.AddScoped<IngestDocumentHandler>();
@@ -42,6 +47,20 @@ builder.Services.AddSingleton<
     OpenAiEmbeddingService>();
 
 var app = builder.Build();
+
+// Apply pending migrations on startup when enabled (single-replica staging).
+// Keep disabled for multi-replica deploys to avoid migration races; run them
+// as a dedicated deploy step instead.
+if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
+    using var scope = app.Services.CreateScope();
+    scope.ServiceProvider
+        .GetRequiredService<PortfolioRagDbContext>()
+        .Database
+        .Migrate();
+}
+
+app.MapHealthChecks("/health");
 
 app.MapAskQuestion();
 app.MapIngestDocument();
