@@ -30,6 +30,10 @@ builder.Services.AddSingleton<
     PortfolioAssistant>();
 
 builder.Services.AddSingleton<
+    IDocumentCollector,
+    MarkdownDocumentCollector>();
+
+builder.Services.AddSingleton<
     IChunkingDocumentService,
     MarkdownChunkingService>();
 

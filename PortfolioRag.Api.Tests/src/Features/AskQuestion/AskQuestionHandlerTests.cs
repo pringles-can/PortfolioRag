@@ -81,7 +81,7 @@ public sealed class AskQuestionHandlerTests
         public FakeSearchKnowledgeService(IReadOnlyList<KnowledgeMatch> matches) =>
             _matches = matches;
 
-        public string? QueryReceived { get; private set; }
+        public string QueryReceived { get; private set; }
 
         public Task<IReadOnlyList<KnowledgeMatch>> SearchAsync(
             string query,
@@ -99,9 +99,9 @@ public sealed class AskQuestionHandlerTests
 
         public FakePortfolioAssistant(string answer) => _answer = answer;
 
-        public string? QuestionReceived { get; private set; }
+        public string QuestionReceived { get; private set; }
 
-        public string? ContextReceived { get; private set; }
+        public string ContextReceived { get; private set; }
 
         public Task<string> AnswerAsync(
             string question,

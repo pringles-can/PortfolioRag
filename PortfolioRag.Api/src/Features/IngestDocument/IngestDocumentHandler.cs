@@ -9,17 +9,20 @@ namespace PortfolioRag.Api.Features.IngestDocument;
 public sealed class IngestDocumentHandler
 {
     private readonly IWebHostEnvironment _environment;
+    private readonly IDocumentCollector _documentCollector;
     private readonly IChunkingDocumentService _chunkingService;
     private readonly IEmbeddingService _embeddingService;
     private readonly PortfolioRagDbContext _dbContext;
 
     public IngestDocumentHandler(
         IWebHostEnvironment environment,
+        IDocumentCollector documentCollector,
         IChunkingDocumentService chunkingService,
         IEmbeddingService embeddingService,
         PortfolioRagDbContext dbContext)
     {
         _environment = environment;
+        _documentCollector = documentCollector;
         _chunkingService = chunkingService;
         _embeddingService = embeddingService;
         _dbContext = dbContext;
@@ -32,10 +35,7 @@ public sealed class IngestDocumentHandler
             _environment.ContentRootPath,
             "docs");
 
-        var markdownFiles = Directory
-            .GetFiles(docsPath, "*.md")
-            .OrderBy(x => x)
-            .ToList();
+        var documents = _documentCollector.Collect(docsPath);
 
         // Re-ingestion is a full rebuild: drop existing chunks first so the
         // store always mirrors the current contents of /docs.
@@ -43,11 +43,9 @@ public sealed class IngestDocumentHandler
 
         var totalChunks = 0;
 
-        foreach (var file in markdownFiles)
+        foreach (var document in documents)
         {
-            var fileName = Path.GetFileName(file);
-
-            var text = await File.ReadAllTextAsync(file, cancellationToken);
+            var text = await File.ReadAllTextAsync(document.Path, cancellationToken);
 
             var chunks = _chunkingService.Chunk(text);
 
@@ -65,7 +63,7 @@ public sealed class IngestDocumentHandler
                 _dbContext.DocumentChunks.Add(new DocumentChunk
                 {
                     Id = Guid.NewGuid(),
-                    Source = fileName,
+                    Source = document.Source,
                     ChunkIndex = index,
                     Content = chunks[index],
                     Embedding = new Vector(embeddings[index]),
@@ -79,7 +77,7 @@ public sealed class IngestDocumentHandler
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return new IngestDocumentResponse(
-            FilesProcessed: markdownFiles.Count,
+            FilesProcessed: documents.Count,
             ChunksCreated: totalChunks);
     }
 }
