@@ -49,6 +49,17 @@ coverage*.info
 .env
 .env.*
 
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+
 # OS files
 Thumbs.db
 .DS_Store
