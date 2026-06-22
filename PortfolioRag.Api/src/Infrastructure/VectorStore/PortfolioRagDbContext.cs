@@ -30,6 +30,12 @@ public sealed class PortfolioRagDbContext : DbContext
             entity.Property(x => x.Source).IsRequired();
             entity.Property(x => x.Content).IsRequired();
 
+            entity.Property(x => x.Category)
+                .IsRequired()
+                .HasMaxLength(256);
+
+            entity.HasIndex(x => x.Category);
+
             entity.Property(x => x.Embedding)
                 .HasColumnType($"vector({EmbeddingDimensions})");
         });

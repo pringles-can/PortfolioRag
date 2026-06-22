@@ -64,6 +64,7 @@ public sealed class IngestDocumentHandler
                 {
                     Id = Guid.NewGuid(),
                     Source = document.Source,
+                    Category = document.Category,
                     ChunkIndex = index,
                     Content = chunks[index],
                     Embedding = new Vector(embeddings[index]),

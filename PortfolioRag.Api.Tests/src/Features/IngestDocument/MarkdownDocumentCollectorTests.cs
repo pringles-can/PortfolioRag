@@ -71,6 +71,36 @@ public sealed class MarkdownDocumentCollectorTests
     }
 
     [Fact]
+    public void Collect_SetsCategory_FromImmediateParentFolder()
+    {
+        var docsPath = CreateDocs(
+            "technologies/kafka.md",
+            "interview/architecture.md",
+            "phase1/companies/kla.md");
+
+        var documents = _collector.Collect(docsPath);
+
+        Assert.Equal(
+            "technologies",
+            documents.Single(d => d.Source == "technologies/kafka.md").Category);
+        Assert.Equal(
+            "interview",
+            documents.Single(d => d.Source == "interview/architecture.md").Category);
+        // Deep nesting (phase folder) still yields the section folder.
+        Assert.Equal(
+            "companies",
+            documents.Single(d => d.Source == "phase1/companies/kla.md").Category);
+    }
+
+    [Fact]
+    public void Collect_FileAtDocsRoot_HasEmptyCategory()
+    {
+        var docsPath = CreateDocs("loose.md");
+
+        Assert.Equal(string.Empty, Assert.Single(_collector.Collect(docsPath)).Category);
+    }
+
+    [Fact]
     public void Collect_IgnoresNonMarkdownFiles()
     {
         var docsPath = CreateDocs("notes.txt", "data.json");

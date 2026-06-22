@@ -68,16 +68,22 @@ public sealed class IngestDocumentHandlerIntegrationTests : IAsyncLifetime
 
         Assert.Equal(3, response.FilesProcessed); // README + manifest excluded
 
-        var sources = (await _dbContext.DocumentChunks.ToListAsync(TestContext.Current.CancellationToken))
-            .Select(c => c.Source)
-            .Distinct()
-            .ToList();
+        var stored = await _dbContext.DocumentChunks.ToListAsync(TestContext.Current.CancellationToken);
 
+        var sources = stored.Select(c => c.Source).Distinct().ToList();
         Assert.Contains("technologies/kafka.md", sources);
         Assert.Contains("interview/architecture.md", sources);
         Assert.Contains("accomplishments/architecture.md", sources);
         Assert.DoesNotContain(sources, s => s.Contains("manifest", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(sources, s => s.Contains("readme", StringComparison.OrdinalIgnoreCase));
+
+        // Category is derived from the section folder and persisted.
+        Assert.Equal(
+            "technologies",
+            stored.Single(c => c.Source == "technologies/kafka.md").Category);
+        Assert.Equal(
+            "interview",
+            stored.Single(c => c.Source == "interview/architecture.md").Category);
     }
 
     private static string CreateContentRoot(Dictionary<string, string> files)
