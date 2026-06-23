@@ -121,7 +121,7 @@ resource "azurerm_container_app" "api" {
   }
 
   template {
-    min_replicas = 1
+    min_replicas = 0 # scale to zero when idle (cheaper; cold start on first request)
     max_replicas = 1
 
     container {
@@ -140,7 +140,7 @@ resource "azurerm_container_app" "api" {
         value = "8080"
       }
 
-      # Single staging replica self-migrates on boot.
+      # Migrates on each cold-start boot; idempotent, safe with scale-to-zero.
       env {
         name  = "Database__MigrateOnStartup"
         value = "true"
@@ -180,4 +180,13 @@ resource "azurerm_container_app" "api" {
       ip_address_range = "${var.client_ip}/32"
     }
   }
+
+  # The pgvector allowlist and Azure-services firewall rule must exist before
+  # the app boots, since startup migration connects and runs CREATE EXTENSION
+  # vector. Without this they can be created in parallel and the first boot
+  # crash-loops until they land.
+  depends_on = [
+    azurerm_postgresql_flexible_server_configuration.vector,
+    azurerm_postgresql_flexible_server_firewall_rule.azure_services,
+  ]
 }
