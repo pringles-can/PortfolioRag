@@ -55,6 +55,10 @@ coverage*.info
 *.tfstate.*
 *.tfvars
 !*.tfvars.example
+# Saved plan files embed variable values (incl. secrets) in plaintext
+tfplan
+tfplan.*
+*.tfplan
 crash.log
 crash.*.log
 override.tf
