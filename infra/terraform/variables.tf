@@ -5,7 +5,13 @@ variable "subscription_id" {
 
 variable "location" {
   type        = string
-  description = "Azure region."
+  description = "Azure region for storage/data resources. Note: eastus/eastus2 are offer-restricted for PostgreSQL Flexible Server on this subscription, so these live in westus3."
+  default     = "westus3"
+}
+
+variable "containerapp_location" {
+  type        = string
+  description = "Azure region for the Container Apps environment + app. Separate from var.location because westus3 (where Postgres must live) is AKS-capacity-constrained for managed environments; eastus has reliable capacity."
   default     = "eastus"
 }
 
