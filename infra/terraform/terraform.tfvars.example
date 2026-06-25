@@ -1,0 +1,17 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored.
+
+subscription_id = "00000000-0000-0000-0000-000000000000"
+
+# Your public IPv4 (curl ifconfig.me). Locks app ingress + Postgres admin to you.
+client_ip = "203.0.113.10"
+
+# Secrets
+postgres_admin_password = "change-me-strong-password"
+openai_api_key          = "sk-..."
+ingest_api_key          = "pick-a-long-random-string"
+
+# Optional overrides
+# location        = "eastus2"
+# name_prefix     = "portfoliorag"
+# environment     = "staging"
+# container_image = "myacr.azurecr.io/portfoliorag-api:v1"

@@ -1,44 +1,68 @@
+using Microsoft.EntityFrameworkCore;
+using PortfolioRag.Api.Features.AskQuestion;
+using PortfolioRag.Api.Features.ChunkDocument;
+using PortfolioRag.Api.Features.GenerateEmbedding;
+using PortfolioRag.Api.Features.IngestDocument;
+using PortfolioRag.Api.Features.SearchKnowledge;
+using PortfolioRag.Api.Infrastructure;
+using PortfolioRag.Api.Infrastructure.OpenAI;
+using PortfolioRag.Api.Infrastructure.VectorStore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.Configure<OpenAiOptions>(
+    builder.Configuration.GetSection("OpenAI"));
+
+builder.Services.Configure<IngestionOptions>(
+    builder.Configuration.GetSection("Ingestion"));
+
+builder.Services.AddDbContext<PortfolioRagDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("Postgres"),
+        npgsql => npgsql.UseVector()));
+
+builder.Services.AddHealthChecks();
+
+builder.Services.AddScoped<AskQuestionHandler>();
+builder.Services.AddScoped<IngestDocumentHandler>();
+
+builder.Services.AddScoped<
+    ISearchKnowledgeService,
+    SearchKnowledgeService>();
+
+builder.Services.AddSingleton<
+    IPortfolioAssistant,
+    PortfolioAssistant>();
+
+builder.Services.AddSingleton<
+    IDocumentCollector,
+    MarkdownDocumentCollector>();
+
+builder.Services.AddSingleton<
+    IChunkingDocumentService,
+    MarkdownChunkingService>();
+
+builder.Services.AddSingleton<
+    IEmbeddingService,
+    OpenAiEmbeddingService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Apply pending migrations on startup when enabled (single-replica staging).
+// Keep disabled for multi-replica deploys to avoid migration races; run them
+// as a dedicated deploy step instead.
+if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    using var scope = app.Services.CreateScope();
+    scope.ServiceProvider
+        .GetRequiredService<PortfolioRagDbContext>()
+        .Database
+        .Migrate();
 }
 
-app.UseHttpsRedirection();
+app.MapHealthChecks("/health");
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-    {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
+app.MapAskQuestion();
+app.MapIngestDocument();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
