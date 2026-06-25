@@ -38,6 +38,12 @@ variable "container_image" {
   default     = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
 }
 
+variable "ask_rate_limit_per_minute" {
+  type        = number
+  description = "Max /ask requests per minute (fixed-window, global). Caps OpenAI spend on the public endpoint. Tune without a code change."
+  default     = 10
+}
+
 variable "postgres_admin_login" {
   type        = string
   description = "PostgreSQL administrator login."

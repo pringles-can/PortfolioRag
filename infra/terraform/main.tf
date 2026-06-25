@@ -146,6 +146,12 @@ resource "azurerm_container_app" "api" {
         value = "true"
       }
 
+      # Global fixed-window cap on /ask (protects OpenAI spend on public ingress).
+      env {
+        name  = "RateLimiting__AskPerMinute"
+        value = tostring(var.ask_rate_limit_per_minute)
+      }
+
       env {
         name        = "ConnectionStrings__Postgres"
         secret_name = "postgres-connection-string"

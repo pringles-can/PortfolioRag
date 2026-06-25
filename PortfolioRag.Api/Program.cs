@@ -50,15 +50,19 @@ builder.Services.AddSingleton<
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddFixedWindowLimiter("ask", o =>
+    options.AddFixedWindowLimiter(AskQuestionEndpoint.RateLimitPolicy, o =>
     {
         o.Window      = TimeSpan.FromMinutes(1);
-        o.PermitLimit = 10;   // total /ask calls per minute
+        // Total /ask calls per minute. Tunable via RateLimiting__AskPerMinute
+        // (env var) without a code change; defaults to 10.
+        o.PermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:AskPerMinute") ?? 10;
         o.QueueLimit  = 0;    // reject immediately past limit
     });
 });
 
 var app = builder.Build();
+
+app.UseRateLimiter();
 
 // Apply pending migrations on startup when enabled (single-replica staging).
 // Keep disabled for multi-replica deploys to avoid migration races; run them
