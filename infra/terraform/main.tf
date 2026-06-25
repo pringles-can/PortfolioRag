@@ -173,12 +173,9 @@ resource "azurerm_container_app" "api" {
       latest_revision = true
     }
 
-    # An Allow rule makes everything else implicitly denied -> private to you.
-    ip_security_restriction {
-      name             = "allow-client-ip"
-      action           = "Allow"
-      ip_address_range = "${var.client_ip}/32"
-    }
+    # Ingress is public so the Vercel-hosted frontend (rotating serverless egress
+    # IPs, can't be allowlisted) can reach /ask. /ingest is not exposed by this:
+    # it's gated at the app layer by the X-Ingest-Key header (401 without it).
   }
 
   # The pgvector allowlist and Azure-services firewall rule must exist before
