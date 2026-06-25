@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PortfolioRag.Api.Features.AskQuestion;
 using PortfolioRag.Api.Features.ChunkDocument;
@@ -45,6 +46,17 @@ builder.Services.AddSingleton<
 builder.Services.AddSingleton<
     IEmbeddingService,
     OpenAiEmbeddingService>();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("ask", o =>
+    {
+        o.Window      = TimeSpan.FromMinutes(1);
+        o.PermitLimit = 10;   // total /ask calls per minute
+        o.QueueLimit  = 0;    // reject immediately past limit
+    });
+});
 
 var app = builder.Build();
 
