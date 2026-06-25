@@ -27,4 +27,10 @@
       <Folder Include="src\Infrastructure\VectorStore\" />
     </ItemGroup>
 
+    <!-- Ship the knowledge markdown into the publish output so /ingest can find
+         {ContentRootPath}/docs at runtime (the container has no source tree). -->
+    <ItemGroup>
+      <Content Include="docs\**\*.md" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
 </Project>

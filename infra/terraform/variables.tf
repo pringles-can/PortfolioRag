@@ -11,8 +11,8 @@ variable "location" {
 
 variable "containerapp_location" {
   type        = string
-  description = "Azure region for the Container Apps environment + app. Separate from var.location because westus3 (where Postgres must live) is AKS-capacity-constrained for managed environments; eastus has reliable capacity."
-  default     = "eastus"
+  description = "Azure region for the Container Apps environment + app. Separate from var.location because westus3 (where Postgres must live) is AKS-capacity-constrained for managed environments. Note: westus3 AND eastus both hit ManagedEnvironmentCapacityHeavyUsageError in June 2026; capacity is transient/region-specific, so this may need to move."
+  default     = "centralus"
 }
 
 variable "name_prefix" {
